@@ -1,9 +1,5 @@
-provider "aws" {
-
-  region = "us-east-1"
-}
-resource "aws_s3_bucket" "b" {
-  bucket = "my-tf-test-bucket-345611"
+resource "aws_s3_bucket" "bucket" {
+  bucket = "my-tf-bucket-ranjan254"
   acl    = "private"
 
   tags = {
