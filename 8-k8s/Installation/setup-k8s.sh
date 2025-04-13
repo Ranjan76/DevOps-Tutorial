@@ -4,6 +4,17 @@ echo "Updating and upgrading the package index..."
 sleep 2
 sudo apt update
 
+echo "Disabling swap (required by Kubernetes)..."
+sleep 2
+sudo swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/' /etc/fstab
+
+echo "Enabling necessary kernel modules and settings..."
+sleep 2
+sudo modprobe br_netfilter
+sudo sysctl net.bridge.bridge-nf-call-iptables=1
+sudo sysctl -p
+
 echo "Installing necessary packages for transport over HTTPS..."
 sleep 2
 sudo apt-get install -y apt-transport-https ca-certificates curl
@@ -31,7 +42,7 @@ sudo apt update
 
 echo "Installing Kubernetes components (kubeadm, kubectl, kubelet)..."
 sleep 2
-sudo apt install kubeadm=1.20.0-00 kubectl=1.20.0-00 kubelet=1.20.0-00 -y
+sudo apt install -y kubeadm=1.20.0-00 kubectl=1.20.0-00 kubelet=1.20.0-00
 
 echo "Initializing Kubernetes cluster with kubeadm..."
 sleep 2
@@ -43,10 +54,13 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
+echo "Making master node schedulable (for single-node setup)..."
+sleep 2
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+
 echo "Applying Weave Net CNI plugin..."
 sleep 2
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
-
 
 echo "Displaying the status of the nodes in the Kubernetes cluster..."
 sleep 2
